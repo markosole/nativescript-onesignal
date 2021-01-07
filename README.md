@@ -22,7 +22,7 @@ Enable background notifications and add Push Cotifications in Xcode project.
 
 ### Android
 
-Does not need any configuration.
+Add your google-services.json file to /App_Resources/Android/
 
 ## Usage
 ### JavaScript and TypeScript
@@ -82,25 +82,37 @@ if (application.ios) {
 
 `TnsOneSignal` is the native Android `com.onesignal.OneSignal` class.
 
-In your `main.ts`:
+In your `app.js`:
 
-```typescript
-import * as application from 'application';
+```JavaScript
+
 var TnsOneSignal = require('nativescript-onesignal').TnsOneSignal
 
 if (application.android) {
-	application.on(application.launchEvent, function(args: application.ApplicationEventData) {
+    application.on(application.launchEvent, function (args) {
+        try {
 
-		try {
+            TnsOneSignal.startInit(application.android.context).setNotificationOpenedHandler(new TnsOneSignal.NotificationOpenedHandler({
 
-			console.dump('TnsOneSignal', TnsOneSignal)
-			TnsOneSignal.startInit(application.android.context).init()
+                notificationOpened: function (result) { // once notification is opened..
+		// Catch payload objects sent from OneSignal dasboard
+                    var obj = JSON.parse(result.notification.payload.rawPayload);
+                    console.log(obj.alert);
+                    var obj2 = JSON.parse(obj.custom);
+                    // Onesignal example key pairs as payload
+                    console.log("received example key param 1: " + obj2.a.key1);
+                    console.log("received example key param 2: " + obj2.a.key2);
 
-		} catch (error) {
-			console.error('error', error)
-		}
+                }
+		
+            })).init();
+            TnsOneSignal.setInFocusDisplaying(TnsOneSignal.OSInFocusDisplayOption.Notification);
+            TnsOneSignal.startInit(application.android.context).init();
+        } catch (error) {
+            console.log('error', error);
+        }
+    })
 
-	})
 }
 ```
 
